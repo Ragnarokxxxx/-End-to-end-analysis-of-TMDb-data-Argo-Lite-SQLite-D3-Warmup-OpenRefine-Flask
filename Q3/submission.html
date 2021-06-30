@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!-- cse6242 s21 -->
+
+<!-- run: http-server & -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>running total of tmdb movies by year</title>
+</head>
+<body>
+<script src="lib/d3/d3.min.js"></script>
+  <script src="lib/d3-dsv/d3-dsv.min.js"></script>
+  <script src="lib/d3-fetch/d3-fetch.min.js"></script>
+
+
+  <script>
+    // define the dimensions and margins for the graph
+    var width = 760,height = 340,margin = {top: 80, bottom: 80, left: 100, right: 100};
+
+
+    // define function to parse time in years format
+	var parseTime = d3.timeParse("%Y");
+
+    // create scales x & y for X and Y axis and set their ranges
+    var x = d3.scaleTime();
+          x.range([0, width]);
+
+    var y = d3.scaleLinear();
+          y.range([height, 0]);
+
+    // append svg element to the body of the page
+    // set dimensions and position of the svg element
+    var svg = d3.select("body")
+                .append("svg")
+
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+
+                .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+
+
+    // Get the data
+	var pathToCsv = "q3.csv";		// path to csv
+
+    d3.dsv(",", pathToCsv, function (d) {
+      return {
+        xYear: parseTime(d.year),
+        count: parseInt(d.running_total)
+        //count: +d.running_total
+        // format data attributes if required
+      }
+    }).then(function (data) {
+      console.log(data); // you should see the data in your browser's developer tools console
+
+
+
+
+      /* Create bar plot using data from csv */
+
+      // set the domains of X and Y scales based on data
+      x.domain(d3.extent(data, function(d) { return d.xYear; }));
+      y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+      // Add bars to svg - create new elements based on your data
+
+      var recWidth = Math.round(width/(data.length));
+      var recGap = Math.round(recWidth*0.4);
+
+      svg.selectAll()
+         .data(data)
+         .enter().append("rect")
+         .style("fill", "blue")
+         .attr("x", function(d) { return x(d.xYear); })
+         .attr("y", function(d) { return y(d.count); })
+         .attr('width', recWidth - recGap)
+         .attr("height", function(d) { return height - y(d.count); });
+
+      // Add the X Axis
+      /*
+
+       var xAxis = d3.svg.axis()
+       .scale(x)
+       .orient("bottom")
+       .call(xAxis.ticks(d3.timeYear.every(10)));
+        */
+
+
+      var xAxis = d3.axisBottom(x)
+      svg.append("g")
+         .attr("id", "x_axis")
+         //.style("fill",border_color)
+         .style("font-size","1.0em")
+         //.orient("bottom")
+         .attr("transform", `translate(0, ${height})`)
+         .call(xAxis.ticks(d3.timeYear.every(10)));
+
+
+
+      // Add the text label for X Axis
+      svg.append("text")
+         .attr("id", "x_axis_label")
+         .text("Year")
+         .style("font-size","1.3em")
+         .attr("y", 0)
+         .attr("x", 0)
+         .attr("text-anchor", "middle")
+         //.attr("transform", "translate(470, 550)")
+                 .attr("transform", "translate("+width/2+", "+ height*1.2 +")")
+
+
+      // Add the Y Axis
+      var yAxis = d3.axisLeft(y);
+      svg.append("g")
+        .attr("id", "y_axis")
+        .style("font-size","0.8em")
+        .call(yAxis);
+
+      // Add the text label for Y axis
+      svg.append("text")
+         .attr("id", "y_axis_label")
+         .text("Running Total")
+         .style("font-size","1.3em")
+         .attr("y", 0)
+         .attr("x", 0)
+         .attr("text-anchor", "middle")
+         //.attr("transform", "translate(-70, 280) rotate(-90) ")
+                  .attr("transform", "translate("+ -width/11+", "+height/2+") rotate(-90)")
+
+
+
+      // Add the text label for Title
+      svg.append("text")
+         .attr("id", "title")
+         .text("Running Total of TMDb Movies by Year")
+         .style("font-size","1.8em")
+         .attr("y", 0)
+         .attr("x", 0)
+         .attr("text-anchor", "middle")
+         //.attr("transform", "translate(380, -40)")
+                          .attr("transform", "translate( "+ width/2 +", "+ -height/15 +")")
+
+
+      // Add the text label for GTusername
+      svg.append("text")
+         .attr("id", "credit")
+         .text("ywu786")
+         .attr("y", 0)
+         .attr("x", 0)
+         .attr("text-anchor", "end")
+         //.attr("transform", "translate("+ width +", 550)")
+         .attr("transform", "translate("+ width +", "+ height*1.2 +")")
+
+
+
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+  </script>
+</body>
+</html>
